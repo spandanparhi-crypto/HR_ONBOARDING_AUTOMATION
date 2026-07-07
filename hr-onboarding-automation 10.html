@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Onboard/1 — HR Onboarding Automation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2333;
+    --ink-soft:#3A4358;
+    --paper:#F6F4EF;
+    --panel:#FFFFFF;
+    --teal:#2F7A6E;
+    --teal-soft:#E4EFEC;
+    --amber:#C98A2C;
+    --amber-soft:#F5E8D3;
+    --rose:#B4483A;
+    --rose-soft:#F5E2DE;
+    --line:#DDD8CC;
+    --line-dark:#C9C3B3;
+    --font-display:'Fraunces', Georgia, serif;
+    --font-body:'Inter', -apple-system, sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:var(--font-body);
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  button{font-family:inherit; cursor:pointer; border:none; background:none;}
+  input, select, textarea{font-family:inherit; font-size:14px;}
+  ::selection{background:var(--amber-soft);}
+
+  .app{display:flex; min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{
+    width:230px; flex-shrink:0; background:var(--ink); color:var(--paper);
+    display:flex; flex-direction:column; padding:28px 20px;
+    position:sticky; top:0; height:100vh;
+  }
+  .brand{display:flex; align-items:center; gap:10px; margin-bottom:38px;}
+  .brand-mark{
+    width:36px; height:36px; border:1.5px solid var(--amber); border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-size:12px; font-weight:600; color:var(--amber);
+    transform:rotate(-3deg);
+  }
+  .brand-text{font-family:var(--font-display); font-size:19px; font-weight:600; letter-spacing:0.2px;}
+  .brand-sub{font-family:var(--font-mono); font-size:9.5px; color:#8891A5; letter-spacing:1.5px; text-transform:uppercase; margin-top:1px;}
+
+  .nav{display:flex; flex-direction:column; gap:2px; margin-top:8px;}
+  .nav-item{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:6px;
+    font-size:13.5px; font-weight:500; color:#B8C0D1; text-align:left; width:100%;
+    transition:background 0.15s, color 0.15s;
+  }
+  .nav-item:hover{background:#262F44; color:var(--paper);}
+  .nav-item.active{background:#262F44; color:var(--paper);}
+  .nav-item .tag{
+    font-family:var(--font-mono); font-size:9px; color:#5B6479; width:20px;
+  }
+  .nav-item.active .tag{color:var(--amber);}
+
+  .sidebar-foot{margin-top:auto; padding-top:20px; border-top:1px solid #2B3450;}
+  .sidebar-foot-label{font-family:var(--font-mono); font-size:9px; color:#5B6479; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;}
+  .sidebar-stat{font-family:var(--font-mono); font-size:20px; color:var(--paper); font-weight:600;}
+  .sidebar-stat-sub{font-size:11px; color:#8891A5;}
+
+  /* Main */
+  .main{flex:1; min-width:0; padding:34px 44px 60px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; gap:20px;}
+  .topbar h1{font-family:var(--font-display); font-size:28px; font-weight:600;}
+  .topbar-sub{font-size:13px; color:var(--ink-soft); margin-top:3px;}
+  .topbar-actions{display:flex; gap:10px; align-items:center;}
+  .search-box{
+    display:flex; align-items:center; gap:7px; background:var(--panel); border:1px solid var(--line);
+    border-radius:7px; padding:8px 12px; min-width:210px;
+  }
+  .search-box input{border:none; outline:none; background:none; width:100%; font-size:13px;}
+  .btn{
+    font-size:13.5px; font-weight:600; padding:10px 18px; border-radius:7px;
+    display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
+    transition:transform 0.1s, box-shadow 0.15s;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--amber); color:#2A1B02; box-shadow:0 2px 0 #9C6A1E;}
+  .btn-primary:hover{box-shadow:0 3px 6px rgba(201,138,44,0.35);}
+  .btn-ghost{background:var(--panel); color:var(--ink); border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--line-dark);}
+  .btn-teal{background:var(--teal); color:white; box-shadow:0 2px 0 #205A51;}
+  .btn-sm{padding:6px 12px; font-size:12.5px;}
+  .btn-danger-text{color:var(--rose); font-size:12.5px; font-weight:600;}
+
+  /* Stat tiles */
+  .stat-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:30px;}
+  .stat-tile{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; position:relative; overflow:hidden;}
+  .stat-tile::before{content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--teal);}
+  .stat-tile.amber::before{background:var(--amber);}
+  .stat-tile.rose::before{background:var(--rose);}
+  .stat-num{font-family:var(--font-mono); font-size:30px; font-weight:600; line-height:1;}
+  .stat-label{font-size:12px; color:var(--ink-soft); margin-top:8px; letter-spacing:0.2px;}
+
+  /* Section heading */
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; margin:8px 0 14px;}
+  .section-head h2{font-family:var(--font-display); font-size:18px; font-weight:600;}
+  .section-head .count{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft);}
+
+  .filter-row{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+  .filter-chip{
+    font-size:12px; font-weight:600; padding:6px 13px; border-radius:20px; border:1px solid var(--line);
+    background:var(--panel); color:var(--ink-soft);
+  }
+  .filter-chip.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+
+  /* Manifest card (employee row) */
+  .manifest{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; margin-bottom:12px;
+    display:flex; align-items:stretch; overflow:hidden; transition:box-shadow 0.15s;
+  }
+  .manifest:hover{box-shadow:0 4px 16px rgba(27,35,51,0.08);}
+  .manifest-main{flex:1; padding:18px 20px; display:flex; align-items:center; gap:20px; text-align:left; min-width:0;}
+  .avatar{
+    width:44px; height:44px; border-radius:8px; background:var(--teal-soft); color:var(--teal);
+    display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:600; font-size:16px;
+    flex-shrink:0;
+  }
+  .manifest-id{flex:1; min-width:0;}
+  .manifest-name{font-family:var(--font-display); font-size:16.5px; font-weight:600;}
+  .manifest-role{font-size:12.5px; color:var(--ink-soft); margin-top:1px;}
+  .manifest-meta{font-family:var(--font-mono); font-size:10.5px; color:#8891A5; margin-top:5px; display:flex; gap:12px;}
+
+  .runway{width:220px; flex-shrink:0;}
+  .runway-track{height:7px; background:#EEEAE0; border-radius:4px; overflow:hidden; display:flex; position:relative;}
+  .runway-fill{height:100%; background:var(--teal); border-radius:4px; transition:width 0.3s;}
+  .runway-label{font-family:var(--font-mono); font-size:10.5px; color:var(--ink-soft); margin-top:6px; display:flex; justify-content:space-between;}
+
+  .status-badge{
+    font-size:10.5px; font-weight:700; padding:4px 10px; border-radius:20px; letter-spacing:0.3px; text-transform:uppercase;
+    white-space:nowrap; flex-shrink:0;
+  }
+  .status-ontrack{background:var(--teal-soft); color:var(--teal);}
+  .status-attention{background:var(--amber-soft); color:#8A5D1B;}
+  .status-overdue{background:var(--rose-soft); color:var(--rose);}
+  .status-complete{background:#E7E9EC; color:#4A5468;}
+
+  .manifest-stub{
+    width:1px; border-left:2px dashed var(--line-dark); position:relative; flex-shrink:0;
+  }
+  .manifest-action{
+    width:56px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    color:var(--ink-soft); font-size:18px; background:#FBFAF7;
+  }
+  .manifest:hover .manifest-action{color:var(--ink); background:var(--amber-soft);}
+
+  .empty-state{
+    text-align:center; padding:60px 20px; color:var(--ink-soft); background:var(--panel);
+    border:1px dashed var(--line-dark); border-radius:10px;
+  }
+  .empty-state .big{font-family:var(--font-display); font-size:19px; color:var(--ink); margin-bottom:6px;}
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(27,35,51,0.45); display:none; align-items:center; justify-content:center;
+    z-index:100; padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal{
+    background:var(--panel); border-radius:12px; width:100%; max-width:520px; max-height:88vh; overflow-y:auto;
+    padding:28px 30px;
+  }
+  .modal h3{font-family:var(--font-display); font-size:20px; margin-bottom:4px;}
+  .modal .modal-sub{font-size:12.5px; color:var(--ink-soft); margin-bottom:20px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12px; font-weight:600; margin-bottom:5px; color:var(--ink-soft);}
+  .field input, .field select{
+    width:100%; padding:9px 12px; border:1px solid var(--line); border-radius:7px; outline:none;
+  }
+  .field input:focus, .field select:focus{border-color:var(--teal);}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:22px;}
+
+  /* Detail view */
+  .detail-head{
+    background:var(--ink); color:var(--paper); border-radius:12px; padding:26px 30px; margin-bottom:26px;
+    display:flex; justify-content:space-between; align-items:center; position:relative; overflow:hidden;
+  }
+  .detail-head::after{
+    content:''; position:absolute; right:-40px; top:-40px; width:140px; height:140px; border-radius:50%;
+    border:1.5px solid rgba(255,255,255,0.08);
+  }
+  .detail-name{font-family:var(--font-display); font-size:26px; font-weight:600;}
+  .detail-role{font-size:13px; color:#B8C0D1; margin-top:3px;}
+  .detail-meta{display:flex; gap:22px; margin-top:14px; font-family:var(--font-mono); font-size:11px; color:#9BA4BA;}
+  .detail-meta span b{color:var(--paper); display:block; font-size:13px; margin-bottom:2px;}
+  .stamp{
+    font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--teal); border:2px solid var(--teal);
+    border-radius:6px; padding:8px 14px; transform:rotate(-6deg); letter-spacing:1.5px;
+  }
+  .back-link{font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:16px; display:inline-flex; align-items:center; gap:5px;}
+  .back-link:hover{color:var(--ink);}
+
+  .stage{background:var(--panel); border:1px solid var(--line); border-radius:10px; margin-bottom:14px; overflow:hidden;}
+  .stage-head{
+    display:flex; align-items:center; justify-content:space-between; padding:16px 20px; cursor:pointer;
+  }
+  .stage-title{display:flex; align-items:center; gap:12px;}
+  .stage-num{
+    font-family:var(--font-mono); font-size:11px; color:var(--ink-soft); background:#F0EEE6; width:26px; height:26px;
+    border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .stage-name{font-weight:600; font-size:14.5px;}
+  .stage-progress{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft);}
+  .stage-body{padding:0 20px 16px; display:none;}
+  .stage-body.open{display:block;}
+
+  .task-row{
+    display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid #F0EEE6;
+  }
+  .task-row:first-child{border-top:none;}
+  .checkbox{
+    width:20px; height:20px; border-radius:5px; border:1.5px solid var(--line-dark); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:12px; color:white;
+  }
+  .checkbox.checked{background:var(--teal); border-color:var(--teal);}
+  .task-title{flex:1; font-size:13.5px;}
+  .task-title.done{text-decoration:line-through; color:var(--ink-soft);}
+  .task-assignee{
+    font-family:var(--font-mono); font-size:9.5px; padding:3px 8px; border-radius:5px; letter-spacing:0.5px;
+    text-transform:uppercase; flex-shrink:0;
+  }
+  .assignee-HR{background:var(--teal-soft); color:var(--teal);}
+  .assignee-IT{background:#E4E9F5; color:#3B5BA8;}
+  .assignee-Manager{background:var(--amber-soft); color:#8A5D1B;}
+  .assignee-Employee{background:#F0EEE6; color:var(--ink-soft);}
+  .task-due{font-family:var(--font-mono); font-size:10.5px; color:#8891A5; width:70px; text-align:right; flex-shrink:0;}
+  .task-due.overdue{color:var(--rose); font-weight:600;}
+
+  .doc-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+  .doc-item{
+    display:flex; align-items:center; justify-content:space-between; padding:11px 14px; background:#FBFAF7;
+    border:1px solid var(--line); border-radius:8px; font-size:12.5px;
+  }
+  .doc-status{font-family:var(--font-mono); font-size:9.5px; font-weight:700; padding:3px 8px; border-radius:5px; text-transform:uppercase;}
+  .doc-requested{background:var(--rose-soft); color:var(--rose);}
+  .doc-received{background:var(--amber-soft); color:#8A5D1B;}
+  .doc-verified{background:var(--teal-soft); color:var(--teal);}
+
+  .two-col{display:grid; grid-template-columns:1.6fr 1fr; gap:20px; align-items:start;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px;}
+  .card h3{font-family:var(--font-display); font-size:15.5px; margin-bottom:12px;}
+  textarea.email-box{
+    width:100%; min-height:220px; border:1px solid var(--line); border-radius:8px; padding:14px; font-size:12.5px;
+    line-height:1.6; font-family:var(--font-mono); resize:vertical; outline:none; color:var(--ink-soft);
+  }
+
+  /* Reports */
+  .report-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .donut-wrap{display:flex; align-items:center; gap:24px;}
+  .donut{width:150px; height:150px; border-radius:50%; flex-shrink:0;}
+  .legend{display:flex; flex-direction:column; gap:9px;}
+  .legend-item{display:flex; align-items:center; gap:8px; font-size:12.5px;}
+  .legend-dot{width:10px; height:10px; border-radius:3px;}
+  .bar-list{display:flex; flex-direction:column; gap:14px;}
+  .bar-row-label{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px;}
+  .bar-track{height:9px; background:#EEEAE0; border-radius:5px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--teal); border-radius:5px;}
+
+  .toast{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--paper);
+    padding:11px 20px; border-radius:8px; font-size:13px; font-weight:500; opacity:0; transition:all 0.25s; z-index:200;
+    box-shadow:0 8px 24px rgba(0,0,0,0.2);
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:900px){
+    .sidebar{display:none;}
+    .main{padding:24px;}
+    .stat-row{grid-template-columns:1fr 1fr;}
+    .two-col, .report-grid{grid-template-columns:1fr;}
+    .runway{width:120px;}
+    .doc-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">OB</div>
+      <div>
+        <div class="brand-text">Onboard/1</div>
+        <div class="brand-sub">HR Automation</div>
+      </div>
+    </div>
+    <div class="nav" id="nav">
+      <button class="nav-item active" data-view="dashboard"><span class="tag">01</span> Dashboard</button>
+      <button class="nav-item" data-view="employees"><span class="tag">02</span> Employees</button>
+      <button class="nav-item" data-view="reports"><span class="tag">03</span> Reports</button>
+    </div>
+    <div class="sidebar-foot">
+      <div class="sidebar-foot-label">Active onboardings</div>
+      <div class="sidebar-stat" id="sidebarActiveCount">0</div>
+      <div class="sidebar-stat-sub">across all departments</div>
+    </div>
+  </div>
+
+  <div class="main" id="main"></div>
+</div>
+
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h3>Add new hire</h3>
+    <div class="modal-sub">A default onboarding checklist is generated automatically from the start date.</div>
+    <div class="field">
+      <label>Full name</label>
+      <input type="text" id="f_name" placeholder="e.g. Ananya Rao">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Role / Title</label>
+        <input type="text" id="f_role" placeholder="e.g. Product Analyst">
+      </div>
+      <div class="field">
+        <label>Department</label>
+        <select id="f_dept">
+          <option>Engineering</option>
+          <option>Product</option>
+          <option>Sales</option>
+          <option>Marketing</option>
+          <option>Operations</option>
+          <option>Finance</option>
+          <option>HR</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Start date</label>
+        <input type="date" id="f_start">
+      </div>
+      <div class="field">
+        <label>Reporting manager</label>
+        <input type="text" id="f_manager" placeholder="e.g. Vikram Shah">
+      </div>
+    </div>
+    <div class="field">
+      <label>Personal email</label>
+      <input type="email" id="f_email" placeholder="name@example.com">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewHire()">Create onboarding</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------------- Data model ----------------
+const STAGE_TEMPLATE = [
+  { name:"Pre-boarding Documentation", tasks:[
+    {t:"Offer letter countersigned", a:"Employee", d:-7},
+    {t:"Government ID proof submitted", a:"Employee", d:-5},
+    {t:"Address proof submitted", a:"Employee", d:-5},
+    {t:"Educational certificates submitted", a:"Employee", d:-5},
+    {t:"Bank account details form", a:"Employee", d:-3},
+    {t:"Tax declaration form", a:"Employee", d:-3},
+    {t:"Emergency contact form", a:"Employee", d:-3},
+  ]},
+  { name:"IT & Systems Setup", tasks:[
+    {t:"Corporate email account created", a:"IT", d:-2},
+    {t:"Laptop / equipment assigned", a:"IT", d:-1},
+    {t:"System access & credentials provisioned", a:"IT", d:0},
+    {t:"Software licenses assigned", a:"IT", d:0},
+    {t:"VPN & security setup", a:"IT", d:0},
+  ]},
+  { name:"HR & Compliance", tasks:[
+    {t:"Employee handbook acknowledged", a:"HR", d:1},
+    {t:"Code of conduct signed", a:"HR", d:1},
+    {t:"Insurance enrollment completed", a:"HR", d:3},
+    {t:"Background verification cleared", a:"HR", d:5},
+    {t:"Statutory forms (PF / ESI) filed", a:"HR", d:5},
+  ]},
+  { name:"Workspace & Admin", tasks:[
+    {t:"Desk / seat assigned", a:"HR", d:0},
+    {t:"Access card issued", a:"HR", d:0},
+    {t:"Org chart introduction email sent", a:"Manager", d:1},
+    {t:"Business cards ordered", a:"HR", d:4},
+  ]},
+  { name:"Training & Orientation", tasks:[
+    {t:"Orientation session scheduled", a:"HR", d:0},
+    {t:"Company overview training", a:"HR", d:1},
+    {t:"Role-specific training", a:"Manager", d:3},
+    {t:"Compliance & safety training", a:"HR", d:3},
+    {t:"Buddy / mentor assigned", a:"Manager", d:0},
+  ]},
+  { name:"30-Day Check-in", tasks:[
+    {t:"Manager check-in meeting", a:"Manager", d:14},
+    {t:"Feedback survey completed", a:"Employee", d:20},
+    {t:"Probation review scheduled", a:"Manager", d:29},
+  ]},
+];
+
+const DOC_TEMPLATE = ["Offer Letter","ID Proof","Address Proof","Education Certificates","Bank Details","Tax Forms (PAN)"];
+
+let employees = [];
+let currentView = "dashboard";
+let currentEmployeeId = null;
+let openStageIndex = 0;
+
+function uid(){ return 'e' + Date.now() + Math.floor(Math.random()*1000); }
+
+function buildChecklist(startDateStr){
+  return STAGE_TEMPLATE.map((stage, si) => ({
+    name: stage.name,
+    tasks: stage.tasks.map((tk, ti) => ({
+      id: si+'_'+ti,
+      title: tk.t,
+      assignee: tk.a,
+      dueOffset: tk.d,
+      done: false
+    }))
+  }));
+}
+
+function buildDocs(){
+  const statuses = ["Requested","Received","Verified"];
+  return DOC_TEMPLATE.map(name => ({ name, status: "Requested" }));
+}
+
+// ---------------- Storage ----------------
+async function loadData(){
+  try{
+    const res = await window.storage.get('employees');
+    employees = res ? JSON.parse(res.value) : [];
+  } catch(e){
+    employees = [];
+  }
+  render();
+}
+
+async function saveData(){
+  try{
+    await window.storage.set('employees', JSON.stringify(employees));
+  } catch(e){
+    console.error('Save failed', e);
+  }
+}
+
+// ---------------- Helpers ----------------
+function fmtDate(d){
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+function addDays(dateStr, n){
+  const dt = new Date(dateStr);
+  dt.setDate(dt.getDate()+n);
+  return dt;
+}
+function initials(name){
+  return name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+}
+function progressOf(emp){
+  let total=0, done=0;
+  emp.checklist.forEach(s=>s.tasks.forEach(t=>{ total++; if(t.done) done++; }));
+  return total ? Math.round(done/total*100) : 0;
+}
+function stageProgress(stage){
+  const total = stage.tasks.length;
+  const done = stage.tasks.filter(t=>t.done).length;
+  return {done, total};
+}
+function statusOf(emp){
+  const p = progressOf(emp);
+  if(p>=100) return {label:"Complete", cls:"status-complete"};
+  const today = new Date();
+  let overdue = false;
+  emp.checklist.forEach(s=>s.tasks.forEach(t=>{
+    if(!t.done){
+      const due = addDays(emp.startDate, t.dueOffset);
+      if(due < today) overdue = true;
+    }
+  }));
+  if(overdue) return {label:"Overdue", cls:"status-overdue"};
+  if(p < 40) return {label:"Attention", cls:"status-attention"};
+  return {label:"On track", cls:"status-ontrack"};
+}
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+// ---------------- Rendering ----------------
+function render(){
+  document.getElementById('sidebarActiveCount').textContent =
+    employees.filter(e=>progressOf(e)<100).length;
+
+  const main = document.getElementById('main');
+  if(currentView === 'dashboard') main.innerHTML = renderDashboard();
+  else if(currentView === 'employees') main.innerHTML = renderEmployees();
+  else if(currentView === 'reports') main.innerHTML = renderReports();
+  else if(currentView === 'detail') main.innerHTML = renderDetail(currentEmployeeId);
+}
+
+function renderTopStats(){
+  const total = employees.length;
+  const active = employees.filter(e=>progressOf(e)<100).length;
+  const completed = employees.filter(e=>progressOf(e)>=100).length;
+  let overdueCount = 0;
+  employees.forEach(e=>{ if(statusOf(e).label==='Overdue') overdueCount++; });
+  return `
+  <div class="stat-row">
+    <div class="stat-tile">
+      <div class="stat-num">${total}</div>
+      <div class="stat-label">Total onboardings</div>
+    </div>
+    <div class="stat-tile amber">
+      <div class="stat-num">${active}</div>
+      <div class="stat-label">Currently in progress</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-num">${completed}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-tile rose">
+      <div class="stat-num">${overdueCount}</div>
+      <div class="stat-label">Need attention</div>
+    </div>
+  </div>`;
+}
+
+function renderManifestRow(emp){
+  const p = progressOf(emp);
+  const st = statusOf(emp);
+  return `
+  <div class="manifest">
+    <button class="manifest-main" onclick="openDetail('${emp.id}')">
+      <div class="avatar">${initials(emp.name)}</div>
+      <div class="manifest-id">
+        <div class="manifest-name">${emp.name}</div>
+        <div class="manifest-role">${emp.role} · ${emp.dept}</div>
+        <div class="manifest-meta"><span>START ${fmtDate(emp.startDate).toUpperCase()}</span><span>MGR ${emp.manager.toUpperCase()}</span></div>
+      </div>
+      <div class="runway">
+        <div class="runway-track"><div class="runway-fill" style="width:${p}%"></div></div>
+        <div class="runway-label"><span>${p}% complete</span><span>${emp.checklist.reduce((a,s)=>a+s.tasks.filter(t=>t.done).length,0)}/${emp.checklist.reduce((a,s)=>a+s.tasks.length,0)} tasks</span></div>
+      </div>
+      <div class="status-badge ${st.cls}">${st.label}</div>
+    </button>
+    <div class="manifest-stub"></div>
+    <button class="manifest-action" onclick="openDetail('${emp.id}')">›</button>
+  </div>`;
+}
+
+function renderDashboard(){
+  const recent = [...employees].sort((a,b)=>new Date(b.startDate)-new Date(a.startDate)).slice(0,5);
+  return `
+  <div class="topbar">
+    <div><h1>Dashboard</h1><div class="topbar-sub">Overview of all onboarding activity</div></div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary" onclick="openModal()">+ Add new hire</button>
+    </div>
+  </div>
+  ${renderTopStats()}
+  <div class="section-head"><h2>Recent onboardings</h2><span class="count">${employees.length} total</span></div>
+  ${employees.length===0 ? emptyState() : recent.map(renderManifestRow).join('')}
+  `;
+}
+
+function emptyState(){
+  return `<div class="empty-state">
+    <div class="big">No onboardings yet</div>
+    <div>Add your first new hire to auto-generate their checklist, documents, and welcome email.</div>
+    <div style="margin-top:16px;"><button class="btn btn-primary" onclick="openModal()">+ Add new hire</button></div>
+  </div>`;
+}
+
+let activeFilter = 'All';
+function renderEmployees(){
+  const depts = ['All', ...new Set(employees.map(e=>e.dept))];
+  let list = employees;
+  if(activeFilter !== 'All') list = list.filter(e=>e.dept===activeFilter);
+  return `
+  <div class="topbar">
+    <div><h1>Employees</h1><div class="topbar-sub">All active and completed onboardings</div></div>
+    <div class="topbar-actions">
+      <div class="search-box"><span>⌕</span><input placeholder="Search by name or role" oninput="searchEmployees(this.value)"></div>
+      <button class="btn btn-primary" onclick="openModal()">+ Add new hire</button>
+    </div>
+  </div>
+  <div class="filter-row">
+    ${depts.map(d=>`<button class="filter-chip ${activeFilter===d?'active':''}" onclick="setFilter('${d}')">${d}</button>`).join('')}
+  </div>
+  <div id="empList">${list.length===0 ? emptyState() : list.map(renderManifestRow).join('')}</div>
+  `;
+}
+function setFilter(d){ activeFilter = d; render(); }
+function searchEmployees(q){
+  q = q.toLowerCase();
+  const filtered = employees.filter(e=>e.name.toLowerCase().includes(q) || e.role.toLowerCase().includes(q));
+  document.getElementById('empList').innerHTML = filtered.length ? filtered.map(renderManifestRow).join('') : emptyState();
+}
+
+function renderReports(){
+  const total = employees.length || 1;
+  const complete = employees.filter(e=>progressOf(e)>=100).length;
+  const attention = employees.filter(e=>statusOf(e).label==='Attention').length;
+  const overdue = employees.filter(e=>statusOf(e).label==='Overdue').length;
+  const ontrack = total - complete - attention - overdue;
+
+  const pct = n => Math.round(n/total*100);
+  const segments = [
+    {label:'Complete', n:complete, color:'#4A5468'},
+    {label:'On track', n:ontrack<0?0:ontrack, color:'var(--teal)'},
+    {label:'Attention', n:attention, color:'var(--amber)'},
+    {label:'Overdue', n:overdue, color:'var(--rose)'},
+  ];
+  let acc = 0;
+  const gradientParts = segments.map(s=>{
+    const start = acc; acc += pct(s.n);
+    return `${s.color} ${start}% ${acc}%`;
+  }).join(', ');
+
+  // avg completion per stage across all employees
+  const stageAvg = STAGE_TEMPLATE.map((stage, si)=>{
+    let doneSum=0, totalSum=0;
+    employees.forEach(e=>{
+      const s = e.checklist[si];
+      if(s){ doneSum += s.tasks.filter(t=>t.done).length; totalSum += s.tasks.length; }
+    });
+    return { name: stage.name, pct: totalSum? Math.round(doneSum/totalSum*100) : 0 };
+  });
+
+  return `
+  <div class="topbar">
+    <div><h1>Reports</h1><div class="topbar-sub">Completion trends across the onboarding pipeline</div></div>
+  </div>
+  ${renderTopStats()}
+  <div class="report-grid">
+    <div class="card">
+      <h3>Status distribution</h3>
+      <div class="donut-wrap">
+        <div class="donut" style="background: conic-gradient(${employees.length? gradientParts : '#EEEAE0 0 100%'});"></div>
+        <div class="legend">
+          ${segments.map(s=>`<div class="legend-item"><span class="legend-dot" style="background:${s.color}"></span>${s.label} — ${s.n}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Average progress by stage</h3>
+      <div class="bar-list">
+        ${stageAvg.map(s=>`
+          <div>
+            <div class="bar-row-label"><span>${s.name}</span><span style="font-family:var(--font-mono)">${s.pct}%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:${s.pct}%"></div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function renderDetail(id){
+  const emp = employees.find(e=>e.id===id);
+  if(!emp) { currentView='employees'; return renderEmployees(); }
+  const p = progressOf(emp);
+  const st = statusOf(emp);
+
+  const stagesHtml = emp.checklist.map((stage, si)=>{
+    const {done, total} = stageProgress(stage);
+    const isOpen = openStageIndex === si;
+    return `
+    <div class="stage">
+      <div class="stage-head" onclick="toggleStage(${si})">
+        <div class="stage-title">
+          <div class="stage-num">${si+1}</div>
+          <div class="stage-name">${stage.name}</div>
+        </div>
+        <div class="stage-progress">${done}/${total} · ${isOpen?'▾':'▸'}</div>
+      </div>
+      <div class="stage-body ${isOpen?'open':''}">
+        ${stage.tasks.map(t=>{
+          const due = addDays(emp.startDate, t.dueOffset);
+          const overdue = !t.done && due < new Date();
+          return `
+          <div class="task-row">
+            <div class="checkbox ${t.done?'checked':''}" onclick="toggleTask('${emp.id}', ${si}, '${t.id}')">${t.done?'✓':''}</div>
+            <div class="task-title ${t.done?'done':''}">${t.title}</div>
+            <div class="task-assignee assignee-${t.assignee}">${t.assignee}</div>
+            <div class="task-due ${overdue?'overdue':''}">${fmtDate(due)}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  const docsHtml = emp.docs.map(d=>`
+    <div class="doc-item">
+      <span>${d.name}</span>
+      <span class="doc-status doc-${d.status.toLowerCase()}" style="cursor:pointer" onclick="cycleDoc('${emp.id}','${d.name}')">${d.status}</span>
+    </div>`).join('');
+
+  const emailTemplate = `Subject: Welcome to the team, ${emp.name.split(' ')[0]}!
+
+Hi ${emp.name.split(' ')[0]},
+
+We're delighted to have you joining us as ${emp.role} in ${emp.dept}, starting on ${fmtDate(emp.startDate)}.
+
+Here's what to expect in your first week:
+- Your reporting manager, ${emp.manager}, will greet you on day one
+- IT will have your laptop and system access ready before your start date
+- HR will walk you through documentation and policy sign-off
+- A short orientation session is scheduled during week one
+
+If you have any questions before your start date, just reply to this email.
+
+Looking forward to having you on the team!
+
+Best,
+HR Onboarding Team`;
+
+  return `
+  <button class="back-link" onclick="currentView='employees'; render();">← Back to employees</button>
+  <div class="detail-head">
+    <div>
+      <div class="detail-name">${emp.name}</div>
+      <div class="detail-role">${emp.role} · ${emp.dept}</div>
+      <div class="detail-meta">
+        <span><b>${fmtDate(emp.startDate)}</b>Start date</span>
+        <span><b>${emp.manager}</b>Manager</span>
+        <span><b>${emp.email}</b>Email</span>
+      </div>
+    </div>
+    ${p>=100 ? `<div class="stamp">✓ COMPLETE</div>` : `<div class="status-badge ${st.cls}" style="font-size:12px; padding:7px 14px;">${st.label} · ${p}%</div>`}
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-head"><h2>Onboarding checklist</h2><span class="count">${p}% complete</span></div>
+      ${stagesHtml}
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <h3>Document tracker</h3>
+        <div class="doc-grid">${docsHtml}</div>
+      </div>
+      <div class="card">
+        <h3>Welcome email</h3>
+        <textarea class="email-box" id="emailBox" readonly>${emailTemplate}</textarea>
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <button class="btn btn-teal btn-sm" onclick="copyEmail()">Copy email</button>
+          <button class="btn btn-ghost btn-sm" onclick="removeEmployee('${emp.id}')" style="color:var(--rose); margin-left:auto;">Remove</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+// ---------------- Actions ----------------
+function openDetail(id){ currentEmployeeId = id; currentView = 'detail'; openStageIndex = 0; render(); }
+function toggleStage(i){ openStageIndex = openStageIndex === i ? -1 : i; render(); }
+function toggleTask(empId, si, taskId){
+  const emp = employees.find(e=>e.id===empId);
+  const task = emp.checklist[si].tasks.find(t=>t.id===taskId);
+  task.done = !task.done;
+  saveData();
+  render();
+}
+function cycleDoc(empId, name){
+  const order = ["Requested","Received","Verified"];
+  const emp = employees.find(e=>e.id===empId);
+  const doc = emp.docs.find(d=>d.name===name);
+  doc.status = order[(order.indexOf(doc.status)+1) % order.length];
+  saveData();
+  render();
+}
+function copyEmail(){
+  const box = document.getElementById('emailBox');
+  box.select();
+  document.execCommand('copy');
+  toast('Welcome email copied to clipboard');
+}
+function removeEmployee(id){
+  employees = employees.filter(e=>e.id!==id);
+  saveData();
+  currentView = 'employees';
+  render();
+  toast('Onboarding removed');
+}
+
+function openModal(){ document.getElementById('addModal').classList.add('show'); }
+function closeModal(){
+  document.getElementById('addModal').classList.remove('show');
+  ['f_name','f_role','f_manager','f_email','f_start'].forEach(id=>document.getElementById(id).value='');
+}
+function submitNewHire(){
+  const name = document.getElementById('f_name').value.trim();
+  const role = document.getElementById('f_role').value.trim();
+  const dept = document.getElementById('f_dept').value;
+  const start = document.getElementById('f_start').value;
+  const manager = document.getElementById('f_manager').value.trim();
+  const email = document.getElementById('f_email').value.trim();
+
+  if(!name || !role || !start || !manager){
+    toast('Please fill in name, role, start date and manager');
+    return;
+  }
+
+  const emp = {
+    id: uid(),
+    name, role, dept, manager,
+    email: email || '—',
+    startDate: start,
+    checklist: buildChecklist(start),
+    docs: buildDocs(),
+  };
+  employees.push(emp);
+  saveData();
+  closeModal();
+  currentView = 'employees';
+  render();
+  toast(`${name}'s onboarding created`);
+}
+
+// ---------------- Nav ----------------
+document.getElementById('nav').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.nav-item');
+  if(!btn) return;
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentView = btn.dataset.view;
+  render();
+});
+
+loadData();
+</script>
+</body>
+</html>
